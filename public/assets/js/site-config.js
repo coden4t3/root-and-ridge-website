@@ -1,23 +1,17 @@
 /*
  * Root and Ridge Systems — site settings
  * ------------------------------------------------------------
- * This is the ONE place to change where buttons and the form go.
+ * This is the ONE place to change where the booking buttons go.
+ * (The contact form's Formspree ID lives in contact-form.js.)
  * No secrets belong here: everything in this file is public.
  *
- * bookingUrl    Your Cal.com or Calendly link, e.g.
- *               "https://cal.com/rootandridge/discovery-call".
- *               While empty, every "Book a Discovery Call" button
- *               goes to the Contact page instead.
- *
- * formEndpoint  Your Formspree form URL, e.g.
- *               "https://formspree.io/f/abcdwxyz".
- *               While empty, the contact form shows a message asking
- *               visitors to email you instead of pretending to send.
+ * bookingUrl    The Calendly page every "Book a Discovery Call"
+ *               button opens. If you ever clear it (""), the buttons
+ *               fall back to the Contact page instead.
  *
  * contactEmail  The public email address shown on the site.
  */
 window.RR_CONFIG = {
-  bookingUrl: "",
-  formEndpoint: "",
+  bookingUrl: "https://calendly.com/hello-rootandridgesystems/30min",
   contactEmail: "hello@rootandridgesystems.com"
 };
