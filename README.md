@@ -29,8 +29,9 @@ root-and-ridge-website/
     ├── _redirects         ← Cloudflare redirects
     └── assets/
         ├── css/styles.css         ← all styles; brand tokens at the top
-        ├── js/site-config.js      ← booking URL, form endpoint, email (edit here)
-        ├── js/main.js             ← mobile menu, buttons, form behavior
+        ├── js/site-config.js      ← booking URL and public email (edit here)
+        ├── js/main.js             ← mobile menu, booking buttons, email links
+        ├── js/contact-form.js     ← contact form: validation + Formspree (Contact page only)
         ├── js/roi-calculator.js   ← home page cost calculator (home page only)
         ├── js/js-flag.js          ← tiny helper so the mobile menu works without flicker
         └── img/                   ← logos, icons, social image, background lines
@@ -57,7 +58,8 @@ Notes for local preview:
 
 | Change | Where |
 | --- | --- |
-| Booking link, form endpoint, public email | `public/assets/js/site-config.js` (see section 7) |
+| Booking link, public email | `public/assets/js/site-config.js` (see section 7) |
+| Contact form messages, Formspree form ID | `public/assets/js/contact-form.js` (see section 7) |
 | Colors, fonts, spacing, corner radius | Top of `public/assets/css/styles.css`, under **1. Brand tokens** |
 | ROI calculator wording or starting numbers | The `#calculator` section of `index.html`; the math is in `assets/js/roi-calculator.js` |
 | Page text | The page's `index.html`. Each section is clearly labeled with its heading. |
@@ -124,29 +126,38 @@ None. There's nothing to compile or install.
 
 ## 7. Booking and contact settings
 
-All three live in **`public/assets/js/site-config.js`**:
+The booking link and public email live in **`public/assets/js/site-config.js`**:
 
 ```js
 window.RR_CONFIG = {
-  bookingUrl: "",        // e.g. "https://cal.com/your-name/discovery-call"
-  formEndpoint: "",      // e.g. "https://formspree.io/f/abcdwxyz"
+  bookingUrl: "https://calendly.com/hello-rootandridgesystems/30min",
   contactEmail: "hello@rootandridgesystems.com"
 };
 ```
 
-- **`bookingUrl`**: every "Book a Discovery Call" button on the site (they carry `data-cta="book"`) uses this link. While it's empty, the buttons go to `/contact/`, so nothing is ever broken. Once it's set, the Contact page also shows a "Pick a time" block at the top.
-- **`formEndpoint`**: the contact form posts here. While it's empty, the form checks the fields and then asks the visitor to email you instead, so no message is silently lost. To set up Formspree, create a form at formspree.io, copy its endpoint URL here, and keep the hidden `_gotcha` field (spam protection) as it is.
+- **`bookingUrl`**: every "Book a Discovery Call" button on the site (they carry `data-cta="book"`) uses this link. It's currently set to the Calendly discovery-call page. If it's ever cleared, the buttons fall back to `/contact/`, so nothing breaks. While it's set, the Contact page also shows a "Pick a time" block at the top. The HTML keeps `href="/contact/"` on these buttons as the no-JavaScript fallback; don't replace it.
 - **`contactEmail`**: the address shown in the footer, on the Contact page and in the privacy policy. It's also written into the HTML as a fallback for visitors without JavaScript; if you change it, search `public/` for the old address too.
 
-None of these values are secret. Never put passwords or API keys in this repository.
+**Contact form (Formspree).** The form on `/contact/` sends to Formspree form `myezrvvw` using Formspree's official vanilla JavaScript library, `@formspree/ajax@1`, loaded from unpkg on the Contact page only. The setup is in `public/assets/js/contact-form.js`:
+
+- Our checks run first: name, email (valid format) and message are required; everything else is optional.
+- While sending, the button is disabled and reads "Sending…", so a visitor can't submit twice.
+- On success the visitor stays on the page, the form clears, and a confirmation appears.
+- On failure, everything they typed stays in place and a plain-English error appears (no technical details).
+- The success and error wording is at the top of `contact-form.js`.
+- The form's `action` attribute in `contact/index.html` also points to `https://formspree.io/f/myezrvvw`, so the form still works without JavaScript (in that case Formspree shows its own thank-you page).
+- To use a different Formspree form, change the ID in both places: `formId` in `contact-form.js` and the `action` in `contact/index.html`.
+- Keep the hidden `_gotcha` field; it's Formspree's spam trap.
+
+None of these values are secret: the Formspree form ID is meant to be public. Never put passwords or API keys in this repository.
 
 ## 8. Security headers
 
-`public/_headers` sets a strict Content-Security-Policy that only allows files from this site plus Formspree. If you later:
+`public/_headers` sets a strict Content-Security-Policy that only allows files from this site, the Formspree library from `https://unpkg.com`, and form submissions to `https://formspree.io`. If you later:
 
 - **embed** a Cal.com or Calendly widget on a page (rather than linking to it), add its domains to `script-src`, `frame-src` and `connect-src`;
 - **add analytics** (e.g. Cloudflare Web Analytics), add its script domain to `script-src` and `connect-src`;
-- **switch form providers**, replace `https://formspree.io` in `connect-src` and `form-action`.
+- **switch form providers**, replace `https://formspree.io` in `connect-src` and `form-action`, and `https://unpkg.com` in `script-src`.
 
 If something stops loading after a change like this, the browser console will name the blocked domain.
 
