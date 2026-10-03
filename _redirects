@@ -1,0 +1,4 @@
+# Cloudflare redirects. Docs: https://developers.cloudflare.com/pages/configuration/redirects/
+/home        /              301
+/solutions   /services/     301
+/book        /contact/      301
